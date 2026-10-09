@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AMA Sales Forecast & Growth Planner</title>
+<style>
+:root{--bg:#f6f4ee;--card:#fff;--ink:#1c2321;--mut:#667;--line:#e3dfd3;--a:#0f5f55;--b:#c77d0a;--pos:#15803d;--neg:#b91c1c;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121816;--card:#1b2321;--ink:#eceae2;--mut:#9aa6a1;--line:#2c3733;--a:#3fb5a5;--b:#f0a63a;--pos:#4ade80;--neg:#f87171}}
+:root[data-theme="dark"]{--bg:#121816;--card:#1b2321;--ink:#eceae2;--mut:#9aa6a1;--line:#2c3733;--a:#3fb5a5;--b:#f0a63a;--pos:#4ade80;--neg:#f87171}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Segoe UI",system-ui,-apple-system,sans-serif}
+.w{max-width:1100px;margin:0 auto;padding:18px 14px 40px}
+h1{font:700 24px Georgia,serif;margin:0}h2{font:600 16px Georgia,serif;margin:0 0 8px}
+.sub{color:var(--mut);font-size:13px;margin:2px 0 14px}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:6px 0 14px;overflow-x:auto}
+.tabs button{background:none;border:0;padding:9px 14px;color:var(--mut);font:600 14px inherit;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap}
+.tabs button.on{color:var(--a);border-color:var(--a)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{background:var(--card);color:var(--ink);border:0;padding:7px 12px;cursor:pointer;font:inherit;font-size:13px}
+.seg button.on{background:var(--a);color:#fff}
+.g{display:grid;gap:12px}.k{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}.c2{grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;min-width:0}
+.kv{font:700 24px Georgia,serif}.kl{font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.04em}.kd{font-size:12.5px;color:var(--mut)}
+.pos{color:var(--pos)}.neg{color:var(--neg)}
+svg{width:100%;height:auto;display:block}svg text{fill:var(--mut);font-size:10px}
+.sc{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}th:first-child,td:first-child{text-align:left}
+th{color:var(--mut);font-weight:600}
+input[type=number]{width:84px;padding:4px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);text-align:right}
+input[type=range]{accent-color:var(--a);vertical-align:middle}
+.lg{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--mut);margin-top:6px}.lg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px}
+.rec{border-left:4px solid var(--a)}.rec.h{border-color:var(--b)}
+.tag{font-size:11px;font-weight:700;padding:2px 7px;border-radius:99px;background:var(--bg);border:1px solid var(--line);margin-left:6px}
+.up{font:700 17px Georgia,serif;color:var(--pos)}
+.note{font-size:12.5px;color:var(--mut);margin-top:10px}
+ul{margin:6px 0 0;padding-left:18px}li{margin:3px 0}
+</style></head><body><div class="w">
+<h1>Ahmedabad Management Association</h1>
+<div class="sub">Sales Forecast & Growth Planner · FY 2025-26 actuals → FY 2026-27 to 2028-29 · All values in INR</div>
+<div class="bar">
+ <span class="seg" id="scen"></span>
+ <label style="font-size:13px">Price increase / yr <input type="range" id="pr" min="0" max="15" value="5"> <b id="prv">5%</b></label>
+ <label style="font-size:13px"><input type="checkbox" id="cal" checked> Calibrate to audited fee income</label>
+</div>
+<div class="tabs" id="tabs"></div>
+<div id="v"></div>
+<div class="note">Sources: MIS 2025-26 (programs & participants) and AMA Annual Report 2025-26 (audited Income & Expenditure, monthly MDP pattern). The MIS has no revenue column, so segment revenue is <b>estimated</b>: average fee per participant is an editable assumption (Assumptions tab), scaled so the total equals the audited programme-fee income of ₹5,50,92,426. Replace with actual segment revenue as soon as it is available.</div>
+</div>
+<script>
+const A26=55092426,A25=45451262,INC=105633991,INT=28627621,MEM=760967;
+const M=['Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'];
+const MD=[405,642,518,800,600,321,148,461,265,699,1097,718],MS=MD.reduce((a,b)=>a+b,0);
+const SH=MD.map(x=>x/MS);
+const S=[
+{n:'Management Development',s:'MDP',p:298,u:6275,f:3200,g:8,c:'#0f766e'},
+{n:'EXIM / International Trade',s:'EXIM',p:217,u:4767,f:3600,g:12,c:'#d97706'},
+{n:'Community (Special & Unique)',s:'Community',p:96,u:3406,f:600,g:10,c:'#6366f1'},
+{n:'In-Company',s:'In-Company',p:251,u:7586,f:2800,g:15,c:'#be185d'},
+{n:'Special Programs for Women',s:'Women',p:19,u:391,f:2200,g:30,c:'#0891b2'},
+{n:'Youth & Events (AMAzing, Khadi, Haat)',s:'Youth/Events',p:102,u:3940,f:1200,g:10,c:'#65a30d'},
+{n:'Industry & School Outreach',s:'Outreach',p:44,u:1413,f:300,g:5,c:'#78716c'}];
+let st={m:1,pr:5,cal:true,tab:0};
+const $=id=>document.getElementById(id);
+const I=n=>'₹'+Math.round(n).toLocaleString('en-IN');
+const C=n=>n>=1e7?'₹'+(n/1e7).toFixed(2)+' Cr':n>=1e5?'₹'+(n/1e5).toFixed(1)+' L':'₹'+Math.round(n).toLocaleString('en-IN');
+const N=n=>Math.round(n).toLocaleString('en-IN');
+const P=x=>(x>=0?'+':'')+x.toFixed(1)+'%';
+function calc(m){m=m??st.m;const raw=S.reduce((a,s)=>a+s.u*s.f,0),k=st.cal?A26/raw:1;
+ const rows=S.map(s=>{const f0=s.f*k,y=[0,1,2,3].map(t=>s.u*Math.pow(1+s.g*m/100,t)*f0*Math.pow(1+st.pr/100,t)),u=[0,1,2,3].map(t=>s.u*Math.pow(1+s.g*m/100,t));return{...s,f0,y,u}});
+ const T=[0,1,2,3].map(t=>rows.reduce((a,r)=>a+r.y[t],0)),U=[0,1,2,3].map(t=>rows.reduce((a,r)=>a+r.u[t],0));return{rows,T,U,k}}
+function gbar(L,sr,f,cols){const W=640,H=250,pl=48,pb=24,pt=16,mx=Math.max(...sr.flatMap(s=>s.v))*1.12,n=L.length,bw=(W-pl)/n,w=bw*.72/sr.length;let o=`<svg viewBox="0 0 ${W} ${H}">`;
+ for(let i=0;i<=4;i++){const y=pt+(H-pt-pb)*(1-i/4);o+=`<line x1="${pl}" x2="${W}" y1="${y}" y2="${y}" stroke="var(--line)"/><text x="${pl-4}" y="${y+3}" text-anchor="end">${f(mx*i/4)}</text>`}
+ sr.forEach((s,j)=>s.v.forEach((v,i)=>{const h=(H-pt-pb)*v/mx,x=pl+i*bw+bw*.14+j*w,y=H-pb-h;o+=`<rect x="${x}" y="${y}" width="${w-1}" height="${h}" rx="2" fill="${cols?cols[i]:s.c}"/>`;if(sr.length==1)o+=`<text x="${x+w/2}" y="${y-3}" text-anchor="middle" style="fill:var(--ink)">${f(v)}</text>`}));
+ L.forEach((l,i)=>o+=`<text x="${pl+i*bw+bw/2}" y="${H-8}" text-anchor="middle">${l}</text>`);o+='</svg>';
+ if(sr.length>1)o+='<div class="lg">'+sr.map(s=>`<span><i style="background:${s.c}"></i>${s.name}</span>`).join('')+'</div>';return o}
+function donut(L,V,Cc){const t=V.reduce((a,b)=>a+b,0),r=56,ci=2*Math.PI*r;let off=0,o='<div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><svg viewBox="0 0 150 150" style="width:150px">';
+ V.forEach((v,i)=>{const d=ci*v/t;o+=`<circle cx="75" cy="75" r="${r}" fill="none" stroke="${Cc[i]}" stroke-width="26" stroke-dasharray="${d} ${ci-d}" stroke-dashoffset="${-off}" transform="rotate(-90 75 75)"/>`;off+=d});
+ o+='</svg><div class="lg" style="flex-direction:column;flex:1;min-width:150px">'+L.map((l,i)=>`<span><i style="background:${Cc[i]}"></i>${l} · ${(V[i]/t*100).toFixed(0)}%</span>`).join('')+'</div></div>';return o}
+function dash(){const d=calc(),g=d.T[1]/d.T[0]-1,hg=A26/A25-1,sc=[.5,1,1.5].map(m=>calc(m).T[1]);
+ const k=(l,v,s)=>`<div class="card"><div class="kl">${l}</div><div class="kv">${v}</div><div class="kd">${s}</div></div>`;
+ return`<div class="g k">${k('FY26 programme fees (audited)',C(A26),`<span class="pos">${P(hg*100)}</span> vs FY25 ${C(A25)}`)}
+ ${k('FY27 forecast',C(d.T[1]),`<span class="${g>=0?'pos':'neg'}">${P(g*100)}</span> · +${C(d.T[1]-d.T[0])}`)}
+ ${k('FY29 forecast',C(d.T[3]),`CAGR ${((Math.pow(d.T[3]/d.T[0],1/3)-1)*100).toFixed(1)}%`)}
+ ${k('Participants FY27',N(d.U[1]),`FY26: ${N(d.U[0])} across 1,051 programs`)}
+ ${k('Revenue / participant',I(d.T[0]/d.U[0]),`FY27: ${I(d.T[1]/d.U[1])}`)}
+ ${k('Programme fees share of income',(A26/INC*100).toFixed(0)+'%',`Interest = ${(INT/INC*100).toFixed(0)}% of income, down 5.4%`)}</div>
+ <div class="g c2" style="margin-top:12px">
+ <div class="card"><h2>Revenue trajectory</h2>${gbar(['FY25','FY26','FY27F','FY28F','FY29F'],[{name:'Revenue',v:[A25,...d.T]}],v=>(v/1e7).toFixed(2)+'Cr',['#8a8f8c','var(--a)','var(--b)','var(--b)','var(--b)'])}</div>
+ <div class="card"><h2>Revenue mix, FY27 forecast</h2>${donut(S.map(s=>s.s),d.rows.map(r=>r.y[1]),S.map(s=>s.c))}
+ <h2 style="margin-top:12px">Scenarios, FY27</h2><table><tr><th>Scenario</th><th>Revenue</th><th>Growth</th></tr>${['Conservative','Base','Stretch'].map((n,i)=>`<tr><td>${n}</td><td>${C(sc[i])}</td><td>${P((sc[i]/d.T[0]-1)*100)}</td></tr>`).join('')}</table></div>
+ <div class="card"><h2>Segment revenue: FY26 vs FY27F</h2>${gbar(S.map(s=>s.s),[{name:'FY26',c:'#8a8f8c',v:d.rows.map(r=>r.y[0])},{name:'FY27F',c:'var(--a)',v:d.rows.map(r=>r.y[1])}],v=>(v/1e5).toFixed(0)+'L')}</div>
+ <div class="card"><h2>Monthly phasing (seasonality from MDP pattern)</h2>${gbar(M,[{name:'FY26',c:'#8a8f8c',v:SH.map(s=>s*d.T[0])},{name:'FY27F',c:'var(--b)',v:SH.map(s=>s*d.T[1])}],v=>(v/1e5).toFixed(0)+'L')}
+ <div class="kd">Peak Feb-Mar carries ${((MD[10]+MD[11])/MS*100).toFixed(0)}% of MDP volume; October only ${(MD[6]/MS*100).toFixed(1)}%.</div></div></div>`}
+function assum(){const d=calc();return`<div class="card sc"><h2>Segment assumptions (editable)</h2><table><tr><th>Segment</th><th>Programs</th><th>Participants FY26</th><th>Avg fee/participant (₹)</th><th>Base growth %/yr</th><th>Est. FY26 revenue</th><th>FY27F</th><th>FY28F</th><th>FY29F</th></tr>
+ ${d.rows.map((r,i)=>`<tr><td><i style="display:inline-block;width:9px;height:9px;background:${r.c};border-radius:2px;margin-right:6px"></i>${r.n}</td><td>${r.p}</td><td><input type="number" value="${r.u}" data-i="${i}" data-k="u"></td><td><input type="number" value="${r.f}" data-i="${i}" data-k="f"></td><td><input type="number" value="${r.g}" data-i="${i}" data-k="g"></td><td>${C(r.y[0])}</td><td>${C(r.y[1])}</td><td>${C(r.y[2])}</td><td>${C(r.y[3])}</td></tr>`).join('')}
+ <tr style="font-weight:700"><td>Total</td><td>${S.reduce((a,s)=>a+s.p,0)}</td><td>${N(d.U[0])}</td><td></td><td></td><td>${C(d.T[0])}</td><td>${C(d.T[1])}</td><td>${C(d.T[2])}</td><td>${C(d.T[3])}</td></tr></table>
+ <div class="note">Calibration factor applied to fees: ×${d.k.toFixed(3)}. Growth is scaled by the scenario (Conservative ×0.5, Base ×1, Stretch ×1.5). Not in MIS but inside audited fees: diploma (216 + 135 learners) and certificate programs (24 batches, 575 participants), so true per-participant fees for MIS segments are likely higher.</div></div>`}
+function recs(){const d=calc(),r=d.rows,fee=i=>r[i].f0;
+ const L=[
+ ['High','Close the October trough','Only 148 MDP participants in Oct vs 321 (Sep) and 461 (Nov). Launch festive-season short formats (1-day, weekend, online) and corporate pre-Diwali offers.',(((MD[5]+MD[7])/2)-MD[6])*fee(0)],
+ ['High','Scale Women programs beyond the launch','19 programs / 391 participants (≈21 per program) in the first run. Move to ~60 programs/yr with leadership, entrepreneurship and re-entry tracks.',(60*391/19-391)*fee(4)],
+ ['High','Account-based growth for In-Company','251 programs for 40+ organisations ≈ 190 participants per client. Annual learning-calendar contracts and renewal reviews for +10% volume.',.10*r[3].y[0]],
+ ['High','Deepen GoG-AMA EXIM franchise','222 trade programs, ~4,890 participants. Add sector clinics (pharma, textiles, engineering) and MSME export-readiness cohorts for +10%.',.10*r[1].y[0]],
+ ['Med','Value-based pricing on flagship offerings','Add 3% beyond base price rise on MDP, EXIM and In-Company where demand is strongest; keep member discounts to protect loyalty.',.03*(r[0].y[0]+r[1].y[0]+r[3].y[0])],
+ ['Med','Grow Diwali and festival youth programs','AMAzing Summer drew 2,215 participants in 81 programs; Diwali only 229 in 13. Reach 25% of the summer level.',(.25*2215-229)*fee(5)],
+ ['Med','Make membership a funnel','Membership fees are only ₹7.6 L (0.7% of income). Bundle member pricing with program credits; doubling members also raises program conversion.',MEM],
+ ['Med','Fill the January-June diploma intake','Diploma intake falls from 216 (Jul-Dec) to 135 (Jan-Jun). Add scholarships for early enrolment and use the new Film Production diploma as a lead magnet. (Revenue not in MIS, so not quantified.)',0],
+ ['Med','Plan capacity for the Feb-Mar peak','Peak months run 30+ MDPs in a month. Pre-book faculty and rooms, and shift part of the demand to Jan and Apr through early-bird pricing.',0],
+ ['Watch','Reduce dependence on interest income','Interest income (₹2.86 Cr, 27% of income) fell 5.4%. Programme-fee growth must offset this to keep the surplus (₹2.45 Cr) stable.',0]];
+ const tot=L.reduce((a,x)=>a+x[3],0);
+ return`<div class="card" style="margin-bottom:12px"><div class="kl">Identified incremental annual upside (on top of base forecast)</div><div class="up" style="font-size:26px">${C(tot)}</div><div class="kd">≈ ${(tot/d.T[0]*100).toFixed(1)}% of FY26 programme fees · levers may overlap, so treat as an upper-range estimate.</div></div>
+ <div class="g c2">${L.map(x=>`<div class="card rec ${x[0]=='High'?'h':''}"><h2>${x[1]}<span class="tag">${x[0]}</span></h2><div style="font-size:13.5px">${x[2]}</div>${x[3]?`<div class="up" style="margin-top:6px">+${C(x[3])}</div>`:''}</div>`).join('')}</div>`}
+const TB=['Dashboard','Assumptions','Growth plan'];
+function draw(){$('tabs').innerHTML=TB.map((t,i)=>`<button class="${i==st.tab?'on':''}" onclick="st.tab=${i};draw()">${t}</button>`).join('');
+ $('scen').innerHTML=[['Conservative',.5],['Base',1],['Stretch',1.5]].map(([n,m])=>`<button class="${st.m==m?'on':''}" onclick="st.m=${m};draw()">${n}</button>`).join('');
+ $('v').innerHTML=[dash,assum,recs][st.tab]();
+ document.querySelectorAll('input[data-i]').forEach(e=>e.onchange=()=>{S[e.dataset.i][e.dataset.k]=+e.value||0;draw()})}
+$('pr').oninput=e=>{st.pr=+e.target.value;$('prv').textContent=st.pr+'%';draw()};
+$('cal').onchange=e=>{st.cal=e.target.checked;draw()};
+draw();
+</script></body></html>
